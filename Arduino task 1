@@ -1,0 +1,119 @@
+
+  int speed=0;
+void setup() {
+  Serial.begin(9600);
+  pinMode(2, INPUT_PULLUP); //2号引脚上连接有按键开关，将2号引脚设置为输入上拉模式
+  int pinNumber = 3;        //设置3-9号引脚为输出模式
+  while(pinNumber <= 9){
+    pinMode(pinNumber, OUTPUT);
+    pinNumber = pinNumber + 1;
+  }
+  randomSeed(analogRead(A0)); //为了每一次复位或断电后产生不同顺序的随机数字
+}
+
+// the loop function runs over and over again forever
+void loop() {
+
+  if (!digitalRead(2)){      //读取2号引脚电平状态
+    speed++;
+    Serial.print(speed);
+    delay(500);
+    displayClear();
+  }
+  if(speed==10)
+  {
+    speed=0;
+  }
+  displayNumber(speed); //将猜数字游戏"结果"显示在数码管中
+}
+//根据参数数值在LED数码管上显示数字
+void displayNumber(int ledNumber){     
+  switch(ledNumber){
+    case 1:  //显示1
+      digitalWrite(4, HIGH);
+      digitalWrite(7, HIGH); 
+      break;   
+    case 2:  //显示2
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH); 
+      digitalWrite(5, HIGH); 
+      digitalWrite(8, HIGH); 
+      digitalWrite(9, HIGH); 
+      break;   
+    case 3:   //显示3
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH); 
+      digitalWrite(5, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      break;   
+    case 4:  //显示4
+      digitalWrite(4, HIGH); 
+      digitalWrite(5, HIGH); 
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      break;  
+    case 5:  //显示5
+      digitalWrite(3, HIGH);
+      digitalWrite(5, HIGH); 
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      break;
+    case 6:  //显示6
+      digitalWrite(3, HIGH);
+      digitalWrite(5, HIGH); 
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      digitalWrite(9, HIGH); 
+      break;    
+    case 7:  //显示7
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH); 
+      digitalWrite(7, HIGH);  
+      break;
+    case 8:  //显示8
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH);
+      digitalWrite(5, HIGH); 
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      digitalWrite(9, HIGH); 
+      break;
+    case 9:  //显示9
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH);
+      digitalWrite(5, HIGH); 
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      break;
+    case 0:  //显示默认
+      digitalWrite(3, HIGH);
+      digitalWrite(4, HIGH);
+      digitalWrite(6, HIGH); 
+      digitalWrite(7, HIGH); 
+      digitalWrite(8, HIGH); 
+      digitalWrite(9, HIGH); 
+      break;
+    default:
+        digitalWrite(4, HIGH); 
+        digitalWrite(5, HIGH); 
+        digitalWrite(7, HIGH); 
+        digitalWrite(8, HIGH);  
+        digitalWrite(9, HIGH);   
+    }
+}
+
+//清理显示内容
+void displayClear(){
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW); 
+  digitalWrite(6, LOW); 
+  digitalWrite(7, LOW); 
+  digitalWrite(8, LOW); 
+  digitalWrite(9, LOW); 
+}

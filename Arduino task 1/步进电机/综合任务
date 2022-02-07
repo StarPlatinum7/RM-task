@@ -1,1 +1,38 @@
-简易油门：应用Arduino采集电位器电平然后驱动步进电机和舵机，转动电位器手柄，步进电机转速随之变化，同时舵机指示转速（需要用硬纸片做一个仪表盘）。  
+简易油门：应用Arduino采集电位器电平然后驱动步进电机和舵机，转动电位器手柄，步进电机转速随之变化，同时舵机指示转速（需要用硬纸片做一个仪表盘）。    
+#include <Servo.h>
+#include "AccelStepper.h"
+// 电机步进方式定义
+#define FULLSTEP 4    //全步进参数
+ 
+// 定义步进电机引脚 
+#define motor1Pin1  8     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in1
+#define motor1Pin2  9     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in2
+#define motor1Pin3  10    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in3
+#define motor1Pin4  11    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in4
+
+AccelStepper stepper1(FULLSTEP, motor1Pin1, motor1Pin3, motor1Pin2, motor1Pin4);//建立一个步进电机对象
+ 
+Servo myServo;         //创建Servo对象myServo
+
+void setup() {
+  stepper1.setMaxSpeed(500);   // 设置电机最大速度为180
+  stepper1.setSpeed(300);      // 初始化电机速度为90
+  myServo.attach(6);
+  Serial.begin(9600); //启动串口通讯，传输波特率9600
+}
+ 
+void loop() {
+  //电位器部分
+  int analogInputVal = analogRead(A0);  // 读取模拟输入值
+  int Speed = map(analogInputVal, 0, 1023,  0, 180); //将模拟输入数值（0 - 1023）等比映射到模拟输出数值区间（0-255）内
+  int realSpeed = map(analogInputVal, 0, 1023,  0, 500);
+
+  //舵机部分显示   
+    stepper1.setSpeed(realSpeed); 
+    myServo.write(Speed);             // 使用pos变量数值设置伺服电机
+    Serial.print(Speed);
+    //步进电机部分
+ 
+  
+  stepper1.runSpeed();
+}

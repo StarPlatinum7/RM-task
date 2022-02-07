@@ -1,0 +1,294 @@
+http://www.taichi-maker.com/homepage/reference-index/arduino-library-index/accelstepper-library/#circuit2
+/*
+  Arduino通过AccelStepper库控制28BYJ-48步进电机示例程序-2
+  可通过Arduino IDE 串口监视器输入电机指令
+  本程序旨在演示move/moveTo/runToNewPosition区别 (两个28BYJ-48电机演示)
+  
+  
+ 
+ * 电机指令列表
+ * 'o' 利用currentPosition获取当前电机输出轴位置并通过串口监视器输出该信息
+ * 'v' 利用moveTo函数使电机运行到用户指定坐标位置，moveTo函数不会“block”程序。
+ *     例：v1024 - 将电机moveTo到1024位置
+ * 'm' 利用move函数使电机运行相应步数。move函数不会“block”程序。
+ *     例：m1024 - 使电机运行1024步 
+ * 'r' 利用runToNewPosition函数让电机运行到用户指定坐标位置。runToNewPosition函数功能
+ *     与moveTo函数功能基本相同。唯一区别是runToNewPosition函数将“block”程序运行。
+ *     即电机没有到达目标位置前，Arduino将不会继续执行后续程序内容。
+ *     这一点很像Arduino官方Stepper库中的step函数。
+ *     例：r1024 - 将电机runToNewPosition到1024位置。Arduino在电机达到1024位置前将停止
+ *     其它程序任务的执行。
+ * 's' 利用setCurrentPosition函数设置当前位置为用户指定位置值。
+ *     例：s0 - 设置当前位置为0
+ * 'a' 利用setAcceleration函数设置加速度 
+ *     例：a100 - 设置电机运行的加速度为100 
+ * 'x' 利用setMaxSpeed函数设置最大速度 
+ *     例：x500 - 设置电机运行的最大速度为500 
+ * 'd' 用户通过此指令可指定哪一个电机进行工作  
+ *     例：d1 一号电机工作，d2 二号电机工作, d0 两个电机同时工作
+*/
+ 
+#include "AccelStepper.h"
+ 
+// 电机步进方式定义
+#define FULLSTEP 4    //全步进参数
+#define HALFSTEP 8    //半步进参数
+ 
+// 定义步进电机引脚 
+#define motor1Pin1  8     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in1
+#define motor1Pin2  9     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in2
+#define motor1Pin3  10    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in3
+#define motor1Pin4  11    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in4
+                        
+                        
+#define motor2Pin1  4     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in1
+#define motor2Pin2  5     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in2
+#define motor2Pin3  6     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in3
+#define motor2Pin4  7     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in4
+ 
+// 定义两个步进电机对象
+// 定义中ULN2003驱动板引脚顺序为 in1-in3-in2-in4
+// 1号电机设置为全步进运行，2号电机设置为全步进运行
+AccelStepper stepper1(FULLSTEP, motor1Pin1, motor1Pin3, motor1Pin2, motor1Pin4);
+AccelStepper stepper2(FULLSTEP, motor2Pin1, motor2Pin3, motor2Pin2, motor2Pin4);
+ 
+char cmd;        //电机指令字符
+int data;        //电机指令参数
+int stepperNum;  //控制电机编号
+ 
+void setup()
+{
+  stepper1.setMaxSpeed(500.0);    // 1号电机最大速度500 
+  stepper1.setAcceleration(50.0);  // 1号电机加速度50.0
+ 
+  stepper2.setMaxSpeed(500.0);    // 2号电机最大速度500 
+  stepper2.setAcceleration(50.0);  // 2号电机加速度50.0
+ 
+  Serial.begin(9600);
+  Serial.println(F(""));  
+  Serial.println(F("Please input motor command:"));   
+}
+ 
+ 
+void loop(){
+  if (Serial.available()) {     // 检查串口缓存是否有数据等待传输 
+    cmd = Serial.read();        // 获取电机指令中指令信息    
+    Serial.print(F("cmd = "));
+    Serial.print(cmd);    
+    Serial.print(F(" , ")); 
+    
+    data = Serial.parseInt();   // 获取电机指令中参数信息  
+    Serial.print(F("data = "));
+    Serial.print(data);   
+    Serial.println(F(""));    
+    
+    runUsrCmd();
+  }
+ 
+  stepper1.run();
+  stepper2.run();
+}
+ 
+ 
+void runUsrCmd(){
+  switch(cmd){ 
+    case 'o': //利用currentPosition获取当前电机输出轴位置并通过串口监视器输出该信息
+    
+      Serial.print(F("stepper1 Position: ")); 
+      Serial.println(stepper1.currentPosition());   
+      Serial.print(F("stepper2 Position: ")); 
+      Serial.println(stepper2.currentPosition()); 
+      Serial.print(F("Current Running Motor: "));  
+      
+      if (stepperNum == 1 || stepperNum == 2 ) {
+        Serial.print(F("Motor# ")); 
+        Serial.println(stepperNum); 
+      } else if (stepperNum == 0 ) {
+        Serial.println(F("Both Motors")); 
+      }
+      break;    
+           
+    case 'v': //利用moveTo函数使电机运行到用户指定坐标位置，moveTo函数不会“block”程序。
+       
+      if (stepperNum == 1){
+        Serial.print(F("Motor1 'moveTo' "));  Serial.println(data); 
+        stepper1.moveTo(data); 
+      } else if (stepperNum == 2){
+        Serial.print(F("Motor2 'moveTo' "));  Serial.println(data); 
+        stepper2.moveTo(data); 
+      }else if (stepperNum == 0){
+        Serial.print(F("Both Motors 'moveTo' "));  Serial.println(data); 
+        stepper1.moveTo(data);
+        stepper2.moveTo(data); 
+      } 
+      break;
+      
+    case 'm':   // 利用move函数使电机运行相应步数。move函数不会“block”程序。
+      
+      if (stepperNum == 1){
+        Serial.print(F("Motor1 'move'  "));  Serial.println(data); 
+        stepper1.move(data); 
+      } else if (stepperNum == 2){
+        Serial.print(F("Motor2 'move'  "));  Serial.println(data);
+        stepper2.move(data); 
+      }else if (stepperNum == 0){
+        Serial.print(F("Both Motors 'move'  "));  Serial.println(data);
+        stepper1.move(data);
+        stepper2.move(data); 
+      } 
+      break;
+ 
+    case 'r':  //利用runToNewPosition函数让电机运行到用户指定位置值。  
+      if (stepperNum == 1){
+        Serial.print(F("Motor1 'runToNewPosition' "));
+        Serial.println(data);
+        stepper1.runToNewPosition(data);  
+      } else if (stepperNum == 2){
+        Serial.print(F("Motor2 'runToNewPosition' "));
+        Serial.println(data);
+        stepper2.runToNewPosition(data);  
+      }else if (stepperNum == 0){
+        Serial.print(F("Both Motors 'runToNewPosition' "));
+        Serial.println(data);
+        stepper1.runToNewPosition(data); 
+        stepper2.runToNewPosition(data);   
+      }      
+      break;   
+      
+    case 's':   //利用setCurrentPosition函数设置当前位置为用户指定位置值。
+      if (stepperNum == 1){
+        Serial.print(F("Set stepper1 Current Position to "));
+        Serial.println(data);
+        stepper1.setCurrentPosition(data); 
+      } else if (stepperNum == 2){
+        Serial.print(F("Set stepper2 Current Position to "));
+        Serial.println(data);
+        stepper2.setCurrentPosition(data);
+      }else if (stepperNum == 0){
+        stepper1.moveTo(data);
+        Serial.print(F("Set both steppers' Current Position to "));
+        Serial.println(data);
+        stepper1.setCurrentPosition(data);
+        stepper2.setCurrentPosition(data);
+      }         
+      break;
+ 
+    case 'a':  //利用setAcceleration函数设置加速度 
+      if (stepperNum == 1){
+        Serial.print(F("Motor1 'setAcceleration' "));
+        Serial.println(data);
+        stepper1.setAcceleration(data);  
+      } else if (stepperNum == 2){
+        Serial.print(F("Motor2 'setAcceleration' "));
+        Serial.println(data);
+        stepper2.setAcceleration(data);  
+      }else if (stepperNum == 0){
+        Serial.print(F("Both Motors 'setAcceleration' "));
+        Serial.println(data);
+        stepper1.setAcceleration(data); 
+        stepper2.setAcceleration(data); 
+      }      
+      break;   
+ 
+    case 'x':  //利用setMaxSpeed函数设置最大速度   
+      if (stepperNum == 1){
+        Serial.print(F("Motor1 'setMaxSpeed' "));
+        Serial.println(data);
+        stepper1.setMaxSpeed(data); 
+      } else if (stepperNum == 2){
+        Serial.print(F("Motor2 'setMaxSpeed' "));
+        Serial.println(data);
+        stepper2.setMaxSpeed(data); 
+      }else if (stepperNum == 0){
+        Serial.print(F("Both Motors 'setMaxSpeed' "));
+        Serial.println(data);
+        stepper1.setMaxSpeed(data); 
+        stepper2.setMaxSpeed(data); 
+      } 
+      break;  
+ 
+    case 'd':  //用户通过此指令可指定哪一个电机进行工作  
+      if ( data == 1 || data == 2 ){
+        stepperNum = data;
+        Serial.print(F("Running Motor "));  Serial.println(stepperNum); 
+      } else if (data == 0 ){
+        stepperNum = data;
+        Serial.println(F("Running Both Motors "));  
+      } else {
+        Serial.print(F("Motor Number Wrong.")); 
+      }
+      break;
+                     
+    default:  // 未知指令
+      Serial.println(F("Unknown Command"));
+  }
+}
+
+
+
+
+/*
+ * Arduino通过AccelStepper库控制28BYJ-48步进电机测试程序-3
+ * 可通过Arduino IDE 串口监视器输入电机指令
+ * 本程序旨在演示如何使用Arduino通过AccelStepper库控制28BYJ-48电机保持匀速运转
+ * 
+ * 电机指令示例
+ * '500'  - 使电机正向运行，速度为500
+ * '-300' - 使电机反向运行，速度为300
+ * '0'    - 使电机停止运行
+ 
+*/
+  
+#include "AccelStepper.h"
+ 
+// 电机步进方式定义
+#define FULLSTEP 4    //全步进参数
+#define HALFSTEP 8    //半步进参数
+ 
+// 定义步进电机引脚 
+ 
+#define motor1Pin1  8     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in1
+#define motor1Pin2  9     // 一号28BYJ48连接的ULN2003电机驱动板引脚 in2
+#define motor1Pin3  10    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in3
+#define motor1Pin4  11    // 一号28BYJ48连接的ULN2003电机驱动板引脚 in4
+                        
+                        
+#define motor2Pin1  4     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in1
+#define motor2Pin2  5     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in2
+#define motor2Pin3  6     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in3
+#define motor2Pin4  7     // 二号28BYJ48连接的ULN2003电机驱动板引脚 in4
+ 
+// 定义两个步进电机对象
+// 定义中ULN2003驱动板引脚顺序为 in1-in3-in2-in4
+// 1号电机设置为全步进运行，2号电机设置为全步进运行
+AccelStepper stepper1(FULLSTEP, motor1Pin1, motor1Pin3, motor1Pin2, motor1Pin4);
+AccelStepper stepper2(FULLSTEP, motor2Pin1, motor2Pin3, motor2Pin2, motor2Pin4);
+ 
+void setup()
+{  
+  stepper1.setMaxSpeed(500);   // 设置电机最大速度为500
+  stepper1.setSpeed(300);      // 初始化电机速度为300
+  
+  stepper2.setMaxSpeed(500);   // 设置电机最大速度为500
+  stepper2.setSpeed(300);      // 初始化电机速度为300
+  
+  Serial.begin(9600);
+  Serial.println(F("Please input motor command:"));   
+}
+ 
+void loop()
+{  
+   if (Serial.available()) {     // 检查串口缓存是否有数据等待传输 
+    
+    int data = Serial.parseInt();  
+    
+    Serial.print("Motor 'setSpeed' ");
+    Serial.println(data);
+    
+    stepper1.setSpeed(data);  
+    stepper2.setSpeed(data);    
+  }
+  
+   stepper1.runSpeed();
+   stepper2.runSpeed();
+}

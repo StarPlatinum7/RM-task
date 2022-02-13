@@ -1,0 +1,45 @@
+#include <DHT.h>
+#include <LiquidCrystal.h>
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+#define DHTPIN 8
+#define DHTTYPE DHT11//定义类型
+DHT dht(DHTPIN,DHTTYPE);//初始设置
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  dht.begin();//DHT开始工作
+  lcd.begin(16, 2);
+
+  // Print a message to the LCD.
+ 
+  
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  delay(2000);
+  float h=dht.readHumidity();//湿度
+  float t=dht.readTemperature();
+  Serial.print("Humindity:");//湿度
+  Serial.print(h);
+  Serial.println("%");
+  Serial.print("temperture:");//湿度
+  Serial.print(t);
+  Serial.println("%");
+  lcd.setCursor(0, 0);
+  // print the number of seconds since reset:
+  lcd.print("Humindity:");//湿度
+  lcd.print(h);
+  lcd.print("%");
+  lcd.setCursor(0, 1);
+  lcd.print("temperture:");//湿度
+  lcd.print(t);
+  lcd.print("%");
+  
+
+}

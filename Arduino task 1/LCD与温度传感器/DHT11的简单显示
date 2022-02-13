@@ -1,0 +1,25 @@
+#include <DHT.h>
+#define DHTPIN 8
+#define DHTTYPE DHT11//定义类型
+DHT dht(DHTPIN,DHTTYPE);//初始设置
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  dht.begin();//DHT开始工作
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  delay(2000);
+  float h=dht.readHumidity();//湿度
+  float t=dht.readTemperature();
+  Serial.print("Humindity:");//湿度
+  Serial.print(h);
+  Serial.println("%");
+  Serial.print("temperture:");//湿度
+  Serial.print(t);
+  Serial.println("%");
+  
+
+}

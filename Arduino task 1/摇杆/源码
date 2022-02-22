@@ -1,0 +1,52 @@
+#include <Servo.h>
+
+Servo  me1;
+Servo  me2;
+
+#define pinx A0  //x轴链接A0
+#define piny A1  //y轴链接A1
+#define pink 2 
+
+int val=0;
+int SG1=0;
+int SG2=0;
+
+
+void setup() {
+   pinMode(3,INPUT);
+  me1.attach(8);//舵机的控制引脚 
+  me2.attach(9);
+  Serial.begin(9600);//打开串口
+  pinMode(2, INPUT_PULLUP); //2号引脚上连接有按键开关，将2号引脚设置为输入上拉模式
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  val=analogRead(pinx);
+  SG1=map(val,0,1023,0,180);//设置旋转角度
+  me1.write(SG1);
+  Serial.print("X:");
+  Serial.print(val);
+
+  val=analogRead(piny);
+  SG2=map(val,0,1023,0,180);//设置旋转角度
+  me2.write(SG2);
+  Serial.print("y:");
+  Serial.print(val);
+
+  val=digitalRead(pink);
+  Serial.print("Z:");
+  Serial.println(val);
+  if(val==1)
+  {
+    digitalWrite(3, HIGH);
+  }
+  else
+  {
+      digitalWrite(3, LOW);
+  }
+
+  delay(10);
+  
+}

@@ -1,0 +1,105 @@
+#include <Servo.h>
+
+Servo  me1;
+Servo  me2;
+
+#define pinx A0  //x轴链接A0
+#define piny A1  //y轴链接A1
+#define pink 2 
+
+int valx=497;
+int valy=521;
+int SG11=87;
+int SG22=91;
+int SG1=87;
+int SG2=91;
+int speed=0;
+
+void setup() {
+   pinMode(3,INPUT);
+  me1.attach(8);//舵机的控制引脚 
+  me2.attach(9);
+  Serial.begin(9600);//打开串口
+  pinMode(2, INPUT_PULLUP); //2号引脚上连接有按键开关，将2号引脚设置为输入上拉模式
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  valx=analogRead(pinx);
+    valy=analogRead(piny);
+    SG1=map(valx,0,1023,0,180);//设置旋转角度
+    SG11=judgex(SG11,SG1);
+    SG2=map(valy,0,1023,0,180);//设置旋转角度
+    SG22=judgex(SG22,SG2);
+
+  if (!digitalRead(2)){ //读取2号引脚电平状态
+    speed++;
+    Serial.print(speed);
+    delay(500);
+  }
+  Serial.print("SG11:");
+  Serial.print(SG11);
+  Serial.print("SG1:");
+  Serial.print(SG1);
+  
+  if(!digitalRead(2))
+  {
+    me1.write(87);
+   me2.write(91);
+   SG11=87;
+   SG1=87;
+   SG22=91;
+   SG2=91;
+  }
+  else
+  {
+    
+
+  
+    me1.write(SG11);
+    me2.write(SG22);
+ 
+
+    
+  }
+  delay(10);
+  
+}
+
+
+int judgex(int x1,int x2)
+{
+  if(x1>85&&x1<88)
+  {
+    return x2;
+  }
+  
+  if(x1>88&&x2>87)
+  {
+    return x1>x2?x1:x2;
+  }
+  if(x1<87&&x2<87)
+  {
+     return x1<x2?x1:x2;
+  }
+  
+}
+int judgey(int x1,int x2)
+{
+  if(x1>89&&x1<91)
+  {
+    return x2;
+  }
+  
+  if(x1>91&&x2>91)
+  {
+    return x1>x2?x1:x2;
+  }
+  if(x1<89&&x2<91)
+  {
+     return x1<x2?x1:x2;
+  }
+  
+}

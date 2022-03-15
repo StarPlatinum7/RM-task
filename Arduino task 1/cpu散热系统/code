@@ -1,0 +1,105 @@
+#include "U8glib.h"
+#include <DHT.h>
+
+U8GLIB_SSD1306_128X64 u8g(13, 12, 11, 10);//oled设置
+//dht初始化设置
+#define DHTPIN 9//DHT引脚
+DHT dht(DHTPIN,DHT11);//初始设置
+
+//风扇
+int gear=1 ;//挡位
+int speed=0;
+#define pwm 6//风扇输出引脚
+float t=0;
+
+unsigned long duration=0;
+unsigned long duration1=0;
+unsigned long duration2=0;
+unsigned long duration3=0;
+unsigned long duration4=0;
+unsigned long duration5=0;
+unsigned long duration6=0;
+unsigned long duration7=0;
+unsigned long duration8=0;
+unsigned long duration9=0;
+unsigned long duration10=0;
+
+
+void draw(void) { 
+  u8g.setFont(u8g_font_unifont);
+  u8g.drawStr( 0, 22, "temp:");
+  u8g.setPrintPos(40, 22);
+  u8g.print(t);
+  u8g.setPrintPos(75, 22);
+  u8g.print("^C");
+  u8g.drawStr( 0, 40, "gear:");
+  u8g.setPrintPos(40, 40);
+  u8g.print(gear);
+   u8g.drawStr( 0, 58, "speed:");
+  u8g.setPrintPos(47, 58);
+  u8g.print(duration);
+  u8g.setPrintPos(80, 58);
+  u8g.print("r/min");
+}
+
+void setup(void) {
+  //oled相关
+  if ( u8g.getMode() == U8G_MODE_R3G3B2 ) {
+    u8g.setColorIndex(255);     // white
+  }
+  else if ( u8g.getMode() == U8G_MODE_GRAY2BIT ) {
+    u8g.setColorIndex(3);         // max intensity
+  }
+  else if ( u8g.getMode() == U8G_MODE_BW ) {
+    u8g.setColorIndex(1);         // pixel on
+  }
+  else if ( u8g.getMode() == U8G_MODE_HICOLOR ) {
+    u8g.setHiColorByRGB(255,255,255);
+  }
+  //按键
+  pinMode(8, INPUT_PULLUP); //设置为输入上拉模式
+  //dht
+  dht.begin();//DHT开始工作
+ //风扇开始
+  pinMode(pwm,OUTPUT);
+  pinMode(5,INPUT);
+}
+
+void loop(void) {
+  //设置挡位
+  if (!digitalRead(8)){      //读取2号引脚电平状态
+    gear++;
+    delay(500);
+  }
+  if(gear==4)
+  {
+      gear=1;
+  }
+  //温度的读取
+   t=dht.readTemperature();
+   //pwm风扇
+   speed = map(t, 0, 30, 0, 85);
+   speed=speed*gear;
+   analogWrite(pwm, speed );
+
+   //测速
+   duration1=pulseIn(5,HIGH)/2;
+   duration2=pulseIn(5,HIGH)/2;
+   duration3=pulseIn(5,HIGH)/2;
+   duration4=pulseIn(5,HIGH)/2;
+   duration5=pulseIn(5,HIGH)/2;
+   duration6=pulseIn(5,HIGH)/2;
+   duration7=pulseIn(5,HIGH)/2;
+   duration8=pulseIn(5,HIGH)/2;
+   duration9=pulseIn(5,HIGH)/2;
+   duration10=pulseIn(5,HIGH)/2;
+   duration=(duration1+duration2+duration3+duration4+duration5+duration6+duration7+duration8+duration9+duration10)/5;
+
+
+   //oled显示相关信息
+   draw();
+ u8g.firstPage();  
+  do {
+    draw();
+  } while( u8g.nextPage() );
+}

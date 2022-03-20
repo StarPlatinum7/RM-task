@@ -12,20 +12,24 @@ int speed=0;
 #define pwm 6//风扇输出引脚
 float t=0;
 
-unsigned long duration=0;
-unsigned long duration1=0;
-unsigned long duration2=0;
-unsigned long duration3=0;
-unsigned long duration4=0;
-unsigned long duration5=0;
-unsigned long duration6=0;
-unsigned long duration7=0;
-unsigned long duration8=0;
-unsigned long duration9=0;
-unsigned long duration10=0;
+
+int getspeed()//测速函数
+{
+    unsigned long cycle=0;
+     for(int i=0;i<5;i++)
+    {
+      cycle+=pulseIn(5,HIGH);
+      cycle+=pulseIn(5,LOW);
+     }
+      cycle=2*cycle/5;
+      double fanspeed=60000000/cycle;
+      
+      return (int)fanspeed;
+}
 
 
-void draw(void) { 
+void draw(void) //oled输出函数
+{ 
   u8g.setFont(u8g_font_unifont);
   u8g.drawStr( 0, 22, "temp:");
   u8g.setPrintPos(40, 22);
@@ -79,21 +83,16 @@ void loop(void) {
    t=dht.readTemperature();
    //pwm风扇
    speed = map(t, 0, 30, 0, 85);
+   if(t>30)
+   {
+    speed=83;
+   }
    speed=speed*gear;
    analogWrite(pwm, speed );
 
    //测速
-   duration1=pulseIn(5,HIGH)/2;
-   duration2=pulseIn(5,HIGH)/2;
-   duration3=pulseIn(5,HIGH)/2;
-   duration4=pulseIn(5,HIGH)/2;
-   duration5=pulseIn(5,HIGH)/2;
-   duration6=pulseIn(5,HIGH)/2;
-   duration7=pulseIn(5,HIGH)/2;
-   duration8=pulseIn(5,HIGH)/2;
-   duration9=pulseIn(5,HIGH)/2;
-   duration10=pulseIn(5,HIGH)/2;
-   duration=(duration1+duration2+duration3+duration4+duration5+duration6+duration7+duration8+duration9+duration10)/5;
+   
+   duration=getspeed();
 
 
    //oled显示相关信息
